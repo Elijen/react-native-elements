@@ -1,18 +1,14 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import {
-  Animated,
-  Image as RNImage,
-  Platform,
-  StyleSheet,
-  View,
-} from 'react-native';
+import React from "react";
+import PropTypes from "prop-types";
+import { Animated, Image as RNImage, Platform, StyleSheet, View } from "react-native";
 
-import { nodeType } from '../helpers';
-import { ViewPropTypes, withTheme } from '../config';
+import { nodeType } from "../helpers";
+import { ViewPropTypes, withTheme } from "../config";
 
 class Image extends React.PureComponent {
-  placeholderContainerOpacity = new Animated.Value(1);
+  state = {
+    placeholderContainerOpacity: new Animated.Value(1)
+  };
 
   onLoadEnd = () => {
     /* Images finish loading in the same frame for some reason,
@@ -20,26 +16,15 @@ class Image extends React.PureComponent {
     const minimumWait = 100;
     const staggerNonce = 200 * Math.random();
 
-    setTimeout(
-      () =>
-        Animated.timing(this.placeholderContainerOpacity, {
-          toValue: 0,
-          duration: 350,
-          useNativeDriver: true,
-        }).start(),
-      minimumWait + staggerNonce
-    );
+    this.setState({
+      placeholderContainerOpacity: new Animated.Value(0)
+    });
   };
 
   render() {
-    const {
-      placeholderStyle,
-      PlaceholderContent,
-      containerStyle,
-      style,
-      ImageComponent,
-      ...attributes
-    } = this.props;
+    const { placeholderStyle, PlaceholderContent, containerStyle, style, ImageComponent, ...attributes } = this.props;
+
+    const { placeholderContainerOpacity } = this.state;
 
     return (
       <View style={StyleSheet.flatten([styles.container, containerStyle])}>
@@ -53,17 +38,12 @@ class Image extends React.PureComponent {
                     style,
                     styles.placeholder,
                     {
-                      backgroundColor: this.placeholderContainerOpacity.interpolate(
-                        {
-                          inputRange: [0, 1],
-                          outputRange: [
-                            styles.placeholder.backgroundColor,
-                            'transparent',
-                          ],
-                        }
-                      ),
+                      backgroundColor: placeholderContainerOpacity.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [styles.placeholder.backgroundColor, "transparent"]
+                      })
                     },
-                    placeholderStyle,
+                    placeholderStyle
                   ])}
                 >
                   {PlaceholderContent}
@@ -75,31 +55,20 @@ class Image extends React.PureComponent {
           ),
           default: (
             <React.Fragment>
-              <ImageComponent
-                {...attributes}
-                onLoadEnd={this.onLoadEnd}
-                style={style}
-              />
+              <ImageComponent {...attributes} onLoadEnd={this.onLoadEnd} style={style} />
 
               <Animated.View
-                style={StyleSheet.flatten([
-                  styles.placeholderContainer,
-                  { opacity: this.placeholderContainerOpacity },
-                ])}
+                style={StyleSheet.flatten([styles.placeholderContainer, { opacity: placeholderContainerOpacity }])}
               >
                 <View
                   testID="RNE__Image__placeholder"
-                  style={StyleSheet.flatten([
-                    style,
-                    styles.placeholder,
-                    placeholderStyle,
-                  ])}
+                  style={StyleSheet.flatten([style, styles.placeholder, placeholderStyle])}
                 >
                   {PlaceholderContent}
                 </View>
               </Animated.View>
             </React.Fragment>
-          ),
+          )
         })}
       </View>
     );
@@ -108,17 +77,17 @@ class Image extends React.PureComponent {
 
 const styles = {
   container: {
-    backgroundColor: 'transparent',
-    position: 'relative',
+    backgroundColor: "transparent",
+    position: "relative"
   },
   placeholderContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFillObject
   },
   placeholder: {
-    backgroundColor: '#bdbdbd',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    backgroundColor: "#bdbdbd",
+    alignItems: "center",
+    justifyContent: "center"
+  }
 };
 
 Image.propTypes = {
@@ -126,12 +95,12 @@ Image.propTypes = {
   ImageComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
   PlaceholderContent: nodeType,
   containerStyle: ViewPropTypes.style,
-  placeholderStyle: RNImage.propTypes.style,
+  placeholderStyle: RNImage.propTypes.style
 };
 
 Image.defaultProps = {
-  ImageComponent: RNImage,
+  ImageComponent: RNImage
 };
 
 export { Image };
-export default withTheme(Image, 'Image');
+export default withTheme(Image, "Image");
